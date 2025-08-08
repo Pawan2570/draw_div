@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stylish Draggable Div</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .draggable-container {
+            position: absolute;
+            width: 250px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            cursor: grab;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .draggable-container:active {
+            cursor: grabbing;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            transform: scale(1.01);
+        }
+
+        .draggable-header {
+            background: linear-gradient(90deg, #ff7e5f 0%, #feb47b 100%);
+            color: white;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            user-select: none;
+        }
+
+        .draggable-content {
+            background: white;
+            padding: 0;
+        }
+
+        .draggable-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .draggable-footer {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+
+        .drop-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="drop-indicator">Drop anywhere on screen</div>
+    
+    <div class="draggable-container" id="draggableDiv">
+        <div class="draggable-header">linux world</div>
+        <div class="draggable-content">
+            <img src="lw.jpeg" alt="Sunset" class="draggable-image">
+        </div>
+        <div class="draggable-footer">Drag me</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const draggableDiv = document.getElementById('draggableDiv');
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            // Mouse down event - start dragging
+            draggableDiv.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                
+                // Calculate offset between mouse position and div position
+                offsetX = e.clientX - draggableDiv.getBoundingClientRect().left;
+                offsetY = e.clientY - draggableDiv.getBoundingClientRect().top;
+                
+                // Add active class for visual feedback
+                draggableDiv.style.transition = 'none';
+                document.body.style.cursor = 'grabbing';
+                
+                e.preventDefault(); // Prevent text selection
+            });
+
+            // Mouse move event - handle dragging
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                // Calculate new position
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
+                
+                // Apply new position with boundary checks
+                const maxX = window.innerWidth - draggableDiv.offsetWidth;
+                const maxY = window.innerHeight - draggableDiv.offsetHeight;
+                
+                draggableDiv.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
+                draggableDiv.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
+            });
+
+            // Mouse up event - stop dragging
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    draggableDiv.style.transition = 'all 0.3s ease';
+                    document.body.style.cursor = '';
+                    
+                    // Add a little "drop" animation
+                    draggableDiv.style.transform = 'scale(1)';
+                    setTimeout(() => {
+                        draggableDiv.style.transform = 'scale(1.02)';
+                        setTimeout(() => {
+                            draggableDiv.style.transform = 'scale(1)';
+                        }, 100);
+                    }, 10);
+                }
+            });
+
+            // Touch events for mobile support
+            draggableDiv.addEventListener('touchstart', function(e) {
+                isDragging = true;
+                const touch = e.touches[0];
+                offsetX = touch.clientX - draggableDiv.getBoundingClientRect().left;
+                offsetY = touch.clientY - draggableDiv.getBoundingClientRect().top;
+                draggableDiv.style.transition = 'none';
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                const x = touch.clientX - offsetX;
+                const y = touch.clientY - offsetY;
+                
+                const maxX = window.innerWidth - draggableDiv.offsetWidth;
+                const maxY = window.innerHeight - draggableDiv.offsetHeight;
+                
+                draggableDiv.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
+                draggableDiv.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchend', function() {
+                isDragging = false;
+                draggableDiv.style.transition = 'all 0.3s ease';
+            });
+
+            // Initial position (centered)
+            function centerDiv() {
+                draggableDiv.style.left = `${(window.innerWidth - draggableDiv.offsetWidth) / 2}px`;
+                draggableDiv.style.top = `${(window.innerHeight - draggableDiv.offsetHeight) / 2}px`;
+            }
+
+            centerDiv();
+            window.addEventListener('resize', centerDiv);
+        });
+    </script>
+</body>
+</html>
